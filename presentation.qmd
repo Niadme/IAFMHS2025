@@ -1,0 +1,454 @@
+---
+title: "Measuring Emotion Regulation in Forensic Populations"
+author: "Adam Meddeb, Carlo Garofalo, Steven M. Gillespie, Josanne M. D. van Dongen, Malin Hildebrand Karlén, Märta Wallinius"
+institute: "Lund University, University of Perugia, University of Liverpool, Erasmus University Rotterdam, University of Gothenburg"
+date: 2025-06-24
+format:
+  revealjs:
+    incremental: true 
+    slide-number: TRUE
+    fig.width: 9
+    fig.length: 5
+    theme: serif
+    css: styles.css
+    self-contained: TRUE
+    logo: LundUniversity_C2line_RGB.png
+editor: visual
+---
+
+```{=html}
+<style>
+  /* all anchors on your slides... */
+  .reveal a {
+    color: #007bff !important;
+  }
+  /* footnote superscripts (if you’re using Pandoc-style footnotes) */
+  .reveal sup a {
+    color: #007bff !important;
+  }
+  /* footnotes block at the bottom of slides */
+  .reveal .footnotes a {
+    color: #007bff !important;
+  }
+  .reveal .slide-logo {
+   max-height: 2em !important;
+}
+</style>
+```
+## Background
+
+-   Emotion regulation is increasingly being studied within forensic psychological research
+-   Robust associations are found between ER and aggression[^1] and a variety of externalizing behaviors including intimate partner violence, substance abuse and psychopathy
+-   ER is now considered to be an evidence based dynamic risk factor for sexual reoffending[^2]
+
+[^1]: [Roberton et al., 2012](https://www.sciencedirect.com/science/article/abs/pii/S135917891100098X)
+[^2]: [Seto et al., 2023](https://pubmed.ncbi.nlm.nih.gov/37951100/)
+
+## Background continued
+
+-  While the evidence-base for ER as a clinical construct of interest in forensic psychology has grown, debate has persisted as [to what constitutes ER](https://www.sciencedirect.com/science/article/abs/pii/S2352250X15001141).
+
+-  [Previous systematic reviews](https://pubmed.ncbi.nlm.nih.gov/34436940/) of ER within child and adolescent samples has found great heterogeniety in how ER is measured and less then half of the 87 measures identified where judged to be psychometrically sound.
+
+## Aim 
+
+Review how emotion regulation is measured and conceptualized across forensic settings and how well identified measures perform in terms of reliability and validity.
+
+## Method {.smaller}
+
+-   A search strategy was designed similar to previous systematic reviews and meta-analysis (e.g. [Aldao et al., 2010](https://pubmed.ncbi.nlm.nih.gov/20015584/), [Sloan et al., 2017](https://pubmed.ncbi.nlm.nih.gov/28941927/)) which was published at [PROSPERO](https://www.crd.york.ac.uk/PROSPERO/view/CRD42023495577) in December 2023
+
+-   We coded which measures were used to measure ER as well as;
+
+    -   which variables were measured conjointly with ER
+    -   and how well measures of ER correlated with such variables and
+    -   which reliability estimates that were reported for each ER measure.
+
+## Results - overview {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+![Figure 1](flowchart.png)
+:::
+
+::: {.column width="50%"}
+- Identified over 1000 studies
+- Most studies were excluded at the second screening due to "wrong measurement"
+
+:::
+
+::::
+
+## Sample - overview {.smaller}
+
+Some basic characteristics of the sample of studies we included in our systematic review
+
+```{r basic characteristics}
+library(tidyverse)
+library(readxl)
+library(papaja)
+library(reshape2)
+library(patchwork)
+library(ggplot2)
+df <- read_excel("data.xlsx")
+df <- df %>% select(sample_Mage, sample_size, context, N_females, N_males)
+
+p1 <- df %>% filter(sample_size < 1000) %>% 
+  ggplot(., aes(y = sample_size)) +
+  geom_boxplot() +
+  scale_x_continuous(NULL, breaks = NULL) +
+  labs(y = "",
+       title = "Sample size") +
+  theme_minimal(base_size = 14) +
+  theme(axis.line.x = element_blank(),
+        plot.title    = element_text(face = "bold"))
+
+p2 <- ggplot(df, aes(y = sample_Mage)) +
+  geom_boxplot() +
+  scale_x_continuous(NULL, breaks = NULL) +
+  labs(y = "",
+       title = "Mean age") +
+  theme_minimal(base_size = 14) + 
+  theme(plot.title    = element_text(face = "bold"))
+
+p3 <- df %>%
+  count(context) %>% 
+  ggplot(aes(x = fct_reorder(context, n), y = n)) +
+    geom_col(fill = "steelblue") +
+    coord_flip() +
+    labs(
+      x = "Context",
+      y = "Number of studies",
+      title = "Context"
+    ) +
+    theme_minimal(base_size = 14) +
+    theme(
+      axis.title.y  = element_blank(),
+      plot.title    = element_text(face = "bold")
+    )
+
+
+wrap_plots(p1,p2, p3, nrow = 1)
+```
+
+
+## Results - measures
+
+```{r frequency of measures}
+
+df <- read_excel("data.xlsx")
+figure_3 <- df["primary_measure"] %>%
+  mutate(primary_measure = recode(primary_measure,
+                                  "DERS-36" = "DERS",
+                                  "DERS-36-awareness" = "DERS",
+                                  "ERQ-CR" = "ERQ",
+                                  "ERQ-CR+ES" = "ERQ",
+                                  "ERQ-ES+CR" = "ERQ",
+                                  "ERQ + ERQ-S" = "ERQ",
+                                  "ERQ-total" = "ERQ",
+                                  "ERQ-CR+S" = "ERQ",
+                                  "fMRI" = "Biophysiological",
+                                  "HR" = "Biophysiological",
+                                  "HR, SC" = "Biophysiological"))
+
+figure_3 %>%
+  group_by(primary_measure) %>%
+  summarise(N = n(), .groups = "drop") %>%
+  mutate(primary_measure = fct_reorder(primary_measure, N)) %>% 
+  ggplot(aes(x = primary_measure, y = N)) +
+  geom_col(color = 'black', fill = 'white') +
+  scale_y_continuous(name = "N",
+                     limits = c(0,35)) +
+  labs(title = "Barplot of ER measures",
+       subtitle = "Each bar represents number of times each measure is used",
+       x = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(face = "bold", angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0),
+        plot.subtitle = element_text(hjust = 0),
+        panel.grid.major.x = element_blank())
+```
+
+## Resluts continued {.smaller}
+
+::: columns
+::: {.column width="60%"}
+<style>
+  table.compact {
+    font-size: 15px;
+    border-collapse: collapse;
+  }
+table.compact th,
+table.compact td {
+  border: 1px solid #333;
+  padding: 2px 10px;
+  text-align: center;
+}
+table.compact th:first-child,
+table.compact td:first-child {
+  text-align: left;
+}
+table.compact th {
+  background: #f0f0f0;
+}
+</style>
+  
+  ```{=html}
+<table class="compact">
+  <thead>
+  <tr>
+  <th>Strategy</th>
+  <th>ERQ</th>
+  <th>CERQ</th>
+  <th>CECS</th>
+  <th>PACS</th>
+  <th>Biophysiological</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>Suppression</td>
+  <td>✓</td><td></td><td>✓</td><td></td><td>✓</td>
+  </tr>
+  <tr>
+  <td>Reappraise situation</td>
+  <td>✓</td><td>✓</td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Self-blame</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Blaming others</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Acceptance</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Refocus on planning</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Positive refocusing</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Rumination</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Putting into perspective</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Catastrophizing</td>
+  <td></td><td>✓</td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+  <td>Relaxation</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Count to 10</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Walk away</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Distraction</td>
+  <td></td><td></td><td></td><td>✓</td><td>✓</td>
+  </tr>
+  <tr>
+  <td>Ask for help</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Use humour</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  <tr>
+  <td>Be assertive</td>
+  <td></td><td></td><td></td><td>✓</td><td></td>
+  </tr>
+  </tbody>
+  </table>
+  ```
+:::
+
+::: {.column width="40%"}
+There is variability in terms of: (1) the number of strategies included in each measure; and (2) which measures that are included
+
+:::
+:::
+
+## Results - reliability
+
+```{r reliability}
+# subset dataset
+
+df <- read_excel("data.xlsx")
+df <- df %>% select(c("alpha_DERS_total", "alpha_nonacceptance", "alpha_goals", "alpha_impulse", "alpha_awareness", "alpha_strategies", "alpha_clarity","alpha_ERQ_CR","alpha_ERQ_ES")) %>% rename_with(., .fn = ~ c("DERS total", "DERS Nonacceptance", "DERS Goals", "DERS Impulse", "DERS Awareness", "DERS Strategies", "DERS Clarity", "ERQ Reappraisal", "ERQ Suppression"), .cols = everything())
+
+# pivot the data
+df_long <- df %>%
+  pivot_longer(
+    cols = everything(),      
+    names_to = "variable",    
+    values_to = "value"       
+  ) %>%
+  mutate(variable = factor(variable, levels = colnames(df)))
+
+ggplot(df_long, aes(x = variable, y = value)) +
+  geom_point(shape = 21, colour = "black", size = 2) +
+  geom_hline(yintercept = 0.7, color = "red", linetype = "dashed") +
+  scale_y_continuous(limits = c(0,1), minor_breaks = NULL) +
+  labs(title = "Reliability estimates of DERS and ERQ",
+       x = "",
+       y = "Internal consistency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(face = "bold", angle = 45, hjust = 1),
+        panel.grid.major.x = element_blank())
+```
+
+## Results - validity
+
+```{r heatmap}
+
+df <- read_excel("data.xlsx")
+heatmap <- df[c("primary_measure", names(df)[161:191])]
+
+# rename columns
+names <- c("primary_measure", "ASPD", "PTSD", "Shame", "Aggression", "Anger", "Alexithymia", "TBI",
+           "Trauma", "Social skills", "Self esteem", "somatic symptoms", "Mindfulness", "Dissociation", "Sress", "Psychopathy",
+           "Emotionality", "Selfharm and suicide", "Intervention", "Impulsivity", "selfcompassion", "Intelligence", "self-regulation", "Personality", "Identity", "Psychological mindedness",
+           "Depression", "Empathy", "Substance abuse", "Interoceptive ability", "Interpersonal sensitivity", "Psychiatric comorbidity")
+colnames(heatmap) <- names
+
+
+# recode different DERS instruments to one DERS
+heatmap$primary_measure <- gsub("DERS-\\d+", "DERS", heatmap$primary_measure)
+
+physiological <- c("fMRI", "HR", "HR, SC")
+CERQ <- c("CERQ-64", "CERQ-36")
+TMMS <- c("TMMS-48", "TMMS-24")
+DERS <- c("DERS-P", "DERS-SF", "DERS extended", "DERS-awareness")
+ERQ <- c("ERQ-total", "ERQ-CR", "ERQ-CR+ES", "ERQ + ERQ-S")
+
+
+heatmap$primary_measure[heatmap$primary_measure %in% physiological] <- "Biophysiological"
+heatmap$primary_measure[heatmap$primary_measure %in% DERS] <- "DERS"
+heatmap$primary_measure[heatmap$primary_measure %in% CERQ] <- "CERQ"
+heatmap$primary_measure[heatmap$primary_measure %in% TMMS] <- "TMMS"
+heatmap$primary_measure[heatmap$primary_measure %in% ERQ] <- "ERQ"
+
+# sum up each column to get the count for each variable
+get_count <- function(variable) {
+  filtered <- filter(heatmap, primary_measure == variable)
+  filtered <- filtered[, -1]
+  column_sums <- apply(filtered, 2, function(x) sum(x, na.rm = TRUE))
+  return(column_sums)
+}
+
+heatmap <- rbind(get_count("DERS"),
+                 get_count("ERQ"),
+                 get_count("TMMS"),
+                 get_count("Biophysiological"),
+                 get_count("CERQ"),
+                 get_count("CECS"),
+                 get_count("PACS"))
+
+heatmap <- as.data.frame(heatmap)
+
+heatmap$measure = c("DERS", "ERQ", "TMMS", "Biophysiological", "CERQ", "CECS", "PACS")
+
+# reshape data to long format
+heatmap_long <- melt(heatmap, id.vars = "measure", variable.name = "construct", value.name = "count")
+
+# cerate the plot
+ggplot(heatmap_long, aes(x = construct, y = measure, fill = count)) +
+  geom_tile() +
+  scale_fill_gradient(low = "lightcoral", high = "darkred") +
+  labs(x = "Constructs measured alongside ER",
+       y = "ER framework",
+       fill = "Count") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10, b = 30, l = 0, r = 10)))
+
+```
+
+## Validity
+
+<p align="center">
+
+| **Validity support** | **k** | **Percentage %.** |
+|:---------------------:|:-----:|:-----------------:|
+| Support of validity   |   4   |        17%        |
+| Mixed support         |  19   |        79%        |
+| No support            |   1   |         4%        |
+| **Total**             | **24**|      **100%**     |
+
+</p>
+## Discussion points {data-transition="zoom"}
+
+1. Reliability
+
+2. Measurement issues
+
+3. Conceptual issues
+
+## Reliability {data-transition="zoom"}
+
+-   Reliability needs to be consistently reported for each sample and at the appropriate level of analysis.
+
+-   Amongst the 59 studies included in the review, only 64% reported reliability estimates for their specific sample.
+
+-   Reliability needs to be viewed in light of theoretical considerations.
+
+## Measurement issues {data-transition="zoom"}
+
+-   Choosing a measurement model is also embracing a specific theoretical model of the construct being measured.
+
+-   Few measures of ER have been psychometrically evaluated within a forensic setting.
+
+-   Measures of ER vary greatly in terms of:
+
+    -   conceptual scope
+    -   which emotions are being regulated
+    -   which strategies that are being assessed
+
+## Conceptual issues
+
+-   The concept of ER had to be inferred based on the measurement model. The concept of ER was rarely explicitly outlined.
+
+-   Conceptual differences exist between measures as to which strategies that are assumed to be adaptive and maladaptive respectively.
+
+## Limitations
+
+-   Validity was assessed in terms of correlations and we aggregated across operationalizations
+
+-   It is possible that studies were overlooked that did not specifically discuss their results in relation to emotion regulation
+
+-   Although two authors screened the studies, only one extracted data.
+
+## 
+
+<div style="
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+">
+  <h1>Thank you for your attention!</h1>
+</div>
+
